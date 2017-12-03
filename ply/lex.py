@@ -829,6 +829,9 @@ class LexerReflect(object):
     # -----------------------------------------------------------------------------
 
     def validate_module(self, module):
+        # issue 142: don't error on duplicate t_rules for multiple parser classes in one module 
+        if hasattr(module,'ply_class_inherit'): return
+        
         try:
             lines, linen = inspect.getsourcelines(module)
         except IOError:
@@ -888,6 +891,10 @@ def lex(module=None, object=None, debug=False, optimize=False, lextab='lextab',
     if module:
         _items = [(k, getattr(module, k)) for k in dir(module)]
         ldict = dict(_items)
+        # issue 142: drop ignored members (for parser class inheritance)
+        for i in ldict.keys():
+            if i[:2] == 't_' and ldict[i] == None:
+                del ldict[i]
         # If no __file__ attribute is available, try to obtain it from the __module__ instead
         if '__file__' not in ldict:
             ldict['__file__'] = sys.modules[ldict['__module__']].__file__

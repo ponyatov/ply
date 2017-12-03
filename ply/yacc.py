@@ -3231,6 +3231,10 @@ def yacc(method='LALR', debug=yaccdebug, module=None, tabmodule=tab_module, star
     if module:
         _items = [(k, getattr(module, k)) for k in dir(module)]
         pdict = dict(_items)
+        # issue 142: drop ignored members (for parser class inheritance)
+        for i in pdict.keys():
+            if i[:2] == 'p_' and pdict[i] == None:
+                del pdict[i]
         # If no __file__ or __package__ attributes are available, try to obtain them
         # from the __module__ instead
         if '__file__' not in pdict:
